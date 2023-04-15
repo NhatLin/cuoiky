@@ -31,7 +31,7 @@ class CPlayer:
         self.counter = 0
         for i in range(1,7):
             img_right = pygame.image.load(f'img/guy{i}.png')
-            img_right = pygame.transform.scale(img_right, (40,60))
+            img_right = pygame.transform.scale(img_right, (35,60))
             img_left = pygame.transform.flip(img_right, True, False)
             self.images_right.append(img_right)
             self.images_left.append(img_left)
