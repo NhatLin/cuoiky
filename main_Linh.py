@@ -31,7 +31,7 @@ class CPlayer:
         self.counter = 0
         for i in range(1,7):
             img_right = pygame.image.load(f'img/guy{i}.png')
-            img_right = pygame.transform.scale(img_right, (40,60))
+            img_right = pygame.transform.scale(img_right, (35,60))
             img_left = pygame.transform.flip(img_right, True, False)
             self.images_right.append(img_right)
             self.images_left.append(img_left)
@@ -94,15 +94,20 @@ class CPlayer:
 
         #Check for collision
         for tile in world.tile_list:
+           #Check for collision in x direction
+           if tile[1].colliderect(self.rect.x + dx, self.rect.y, self.width, self.height): 
+                dx = 0
+                
            #Check for collision in y direction
            if tile[1].colliderect(self.rect.x, self.rect.y + dy, self.width, self.height): 
                 #check if below the ground jumping
                 if self.vel_y<0:
                     dy = tile[1].bottom - self.rect.top
+                    self.vel_y = 0
                     #check if above the ground falling
-                if self.vel_y>=0:
+                elif self.vel_y>=0:
                     dy = tile[1].top - self.rect.bottom
-                    
+                    self.vel_y = 0
 
         #Update player coordinates
         self.rect.x += dx

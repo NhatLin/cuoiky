@@ -103,7 +103,6 @@ class CPlayer:
 
         #Draw player onto screen
         screen.blit(self.image, self.rect)
-        pygame.draw.rect(screen, "#b7dffd")
 
 class CWorld:
     def __init__(self,data):
