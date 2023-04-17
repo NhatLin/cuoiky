@@ -1,5 +1,6 @@
 import pygame
 from pygame.locals import *
+import pickle
 
 pygame.init()
 
@@ -15,6 +16,8 @@ pygame.display.set_caption("Our game")
 tile_size = 35
 game_over = 0
 main_menu = True
+level = 1
+max_levels = 3
 
 #Load img
 bg_img = pygame.image.load('img/sky.png')
@@ -22,6 +25,14 @@ sun_img = pygame.image.load('img/sun.png')
 restart_img = pygame.image.load('img/restart.png')
 start_img = pygame.image.load('img/start.png')
 exit_img = pygame.image.load('img/exit.png')
+
+#reset level
+def reset_level(level):
+    player.restart(70, screen_height - 91)
+    enemy_group.empty()
+    poison_group.empty()
+    exit_group.empty()
+
 
 
 # def draw_grid():
@@ -132,7 +143,11 @@ class CPlayer:
             #Check for collision with poison
             if pygame.sprite.spritecollide(self, poison_group, False):
                 game_over = -1
-                print(game_over)
+                
+
+            #Check for collision with exit
+            if pygame.sprite.spritecollide(self, exit_group, False):
+                game_over = 1
 
 
             #Update player coordinates
@@ -195,7 +210,9 @@ class CWorld:
                 if tile ==3:
                     poison = CPoison(col_count * tile_size, row_count * tile_size + 13)
                     poison_group.add(poison)
-
+                if tile ==4:
+                    exit = CExit(col_count * tile_size, row_count * tile_size + 15)
+                    exit_group.add(exit)
                 col_count +=1
             row_count +=1
 
@@ -231,41 +248,35 @@ class CPoison(pygame.sprite.Sprite):
         self.rect.x = x
         self.rect.y = y
 
+class CExit(pygame.sprite.Sprite):
+    def __init__(self, x, y):
+        pygame.sprite.Sprite.__init__(self)
+        image = pygame.image.load('img/gate.png')
+        self.image = pygame.transform.scale(image,(tile_size, tile_size*1.5))
+        self.rect = self.image.get_rect()
+        self.rect.x = x
+        self.rect.y = y
 
 
-world_data = [
-    [1,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1],
-    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-    [1,0,0,0,0,0,0,0,2,0,2,0,0,0,0,0,0,0,0,1],
-    [1,0,0,0,0,0,0,1,1,1,1,1,1,0,0,0,0,0,0,1],
-    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-    [1,0,0,0,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,1],
-    [1,0,0,0,0,0,0,0,0,0,0,3,3,3,0,0,0,0,0,1],
-    [1,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,0,0,0,1],
-    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-    [1,0,0,0,0,0,0,0,0,0,1,1,1,1,0,0,0,0,0,1],
-    [1,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-    [1,0,0,0,1,0,1,1,0,0,0,0,0,0,0,0,0,0,0,1],
-    [1,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]]
+
+
 
 
 player = CPlayer(70, screen_height - 91)
 enemy_group = pygame.sprite.Group()
 poison_group = pygame.sprite.Group()
+exit_group = pygame.sprite.Group()
+
+#Load in level data and create world
+pickle_in = open(f'level{level}.pickle', 'rb')
+world_data = pickle.load(pickle_in)
 world = CWorld(world_data)
 
 
 #Create button
 restart_button = CButton(screen_width //2 - 50, screen_height //2 + 100, restart_img)
-start_button = CButton(screen_width //2, screen_height //2 + 100, start_img)
-exit_button = CButton(screen_width //2, screen_height//2 - 100, exit_img)
+start_button = CButton(screen_width //2 - 260, screen_height //2 , start_img)
+exit_button = CButton(screen_width //2 + 90, screen_height//2, exit_img)
 
 
 
@@ -278,11 +289,15 @@ while run:
 
     screen.blit(bg_img, (0,0))
     screen.blit(sun_img, (35,35))
+
+
     if main_menu:
-        exit_button.draw()
-        start_button.draw()            
+        if exit_button.draw():
+            run = False
+        if start_button.draw():
+            main_menu = False  
+               
     else:
-    
         world.draw()
 
         if game_over == 0:
@@ -290,7 +305,7 @@ while run:
 
         enemy_group.draw(screen)
         poison_group.draw(screen)
-
+        exit_group.draw(screen)
 
         game_over = player.update(game_over)
 
@@ -301,6 +316,15 @@ while run:
                 player.restart(70, screen_height - 91)
                 game_over = 0
 
+        #Player has completed level
+        if game_over == 1:
+            level += 1
+            if level <= max_levels:
+                world_data = []
+                world = reset_level(level)
+                game_over = 0
+            else:
+                pass
     # draw_grid()
 
     for event in pygame.event.get():
