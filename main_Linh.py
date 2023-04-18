@@ -191,6 +191,7 @@ class CPlayer:
 
             #Check for collision with exit
             if pygame.sprite.spritecollide(self, exit_group, False):
+                level
                 game_over = 1
 
             #Check for collision with platform
@@ -368,8 +369,6 @@ class CExit(pygame.sprite.Sprite):
 
 
 
-
-
 player = CPlayer(70, screen_height - 91)
 
 enemy_group = pygame.sprite.Group()
@@ -448,8 +447,8 @@ while run:
             else:
                 completed_levels_fx.play()
                 draw_text('YOU WIN', font, (0,0,0),screen_width //2 - 150, (screen_height //2) - 70)
-                pygame.display.update()
-                pygame.time.delay(2000)
+               
+                completed_levels_fx.play()
                 if restart_button.draw():
                     level = 1
                     world_data = []
