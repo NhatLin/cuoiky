@@ -46,6 +46,9 @@ jump_fx = pygame.mixer.Sound('sound/jump.wav')
 jump_fx.set_volume(0.5)
 game_over_fx = pygame.mixer.Sound('sound/game_over.wav')
 game_over_fx.set_volume(0.5)
+completed_levels_fx = pygame.mixer.Sound('sound/completed.wav')
+game_over_fx.set_volume(0.5)
+
 
 #Draw text function
 def draw_text(text, font, text_col, x, y):
@@ -215,14 +218,14 @@ class CPlayer:
             self.rect.y += dy
 
         elif game_over == -1:
-            self.image = pygame.transform.scale(self.dead_image, (35, 50))
+            self.image = self.dead_image
             draw_text("GAME OVER", font, (0,0,0),screen_width //2 - 200, (screen_height //2) - 70 )
             if self.rect.y > 200:
                 self.rect.y = -5
 
         #Draw player onto screen
         screen.blit(self.image, self.rect)
-        # pygame.draw.rect(screen, (183,223,253), self.rect,2)
+        pygame.draw.rect(screen, (183,223,253), self.rect,1)
         return game_over
     
     def restart(self, x, y):
@@ -232,7 +235,7 @@ class CPlayer:
         self.counter = 0
         for i in range(1,7):
             img_right = pygame.image.load(f'img/guy{i}.png')
-            img_right = pygame.transform.scale(img_right, (35,60))
+            img_right = pygame.transform.scale(img_right, (32,55))
             img_left = pygame.transform.flip(img_right, True, False)
             self.images_right.append(img_right)
             self.images_left.append(img_left)
@@ -443,6 +446,7 @@ while run:
                 world = reset_level(level)
                 game_over = 0
             else:
+                completed_levels_fx.play()
                 draw_text('YOU WIN', font, (0,0,0),screen_width //2 - 150, (screen_height //2) - 70)
                 pygame.display.update()
                 pygame.time.delay(2000)
