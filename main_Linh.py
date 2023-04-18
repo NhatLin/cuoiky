@@ -29,30 +29,50 @@ level = 1
 max_levels = 3
 score = 0
 
-#Draw text function
-def draw_text(text, font, text_col, x, y):
-    img = font.render(text, True, text_col)
-    screen.blit(img, (x, y))
+
 
 
 #Load img
+
 bg_img = pygame.image.load('img/sky.png')
 sun_img = pygame.image.load('img/sun.png')
 restart_img = pygame.image.load('img/restart.png')
 start_img = pygame.image.load('img/start.png')
 exit_img = pygame.image.load('img/exit.png')
 
+
+#Load sounds
+pygame.mixer.music.load('img/music.wav')
+pygame.mixer.music.play(-1, 0.0, 1000)
+coin_fx = pygame.mixer.Sound('img/coin.wav')
+coin_fx.set_volume(0.5)
+jump_fx = pygame.mixer.Sound('img/jump.wav')
+jump_fx.set_volume(0.5)
+game_over_fx = pygame.mixer.Sound('img/game_over.wav')
+game_over_fx.set_volume(0.5)
+
+#Draw text function
+def draw_text(text, font, text_col, x, y):
+    img = font.render(text, True, text_col)
+    screen.blit(img, (x, y))
+
+
+
 #reset level
 def reset_level(level):
     player.restart(70, screen_height - 91)
     enemy_group.empty()
+    platform_group.empty()
     poison_group.empty()
     exit_group.empty()
+    coin_group.empty()
 
     if path.exists(f'level{level}_data'):
-        pickle_in = open(f'level{level}_data ', 'rb')
+        pickle_in = open(f'level{level}_data', 'rb')
         world_data = pickle.load(pickle_in)
     world = CWorld(world_data)
+    score_coin = CCoin(tile_size // 2, tile_size // 2)
+    coin_group.add(score_coin)
 
     return world
 # def draw_grid():
@@ -96,11 +116,13 @@ class CPlayer:
         dx = 0
         dy = 0
         walk_cooldown = 5
+        col_thresh = 20
 
         if game_over ==0: 
             #Get ketpresses
             key = pygame.key.get_pressed()
             if key[pygame.K_UP] and self.jumped == False and self.in_air == False:
+                jump_fx.play()
                 self.vel_y -= 15
                 self.jumped = True
             if key[pygame.K_UP] == False:
@@ -156,19 +178,40 @@ class CPlayer:
                             dy = tile[1].top - self.rect.bottom
                             self.vel_y = 0
                             self.in_air = False
+
+
             #Check for collision with ghost
             if pygame.sprite.spritecollide(self, enemy_group, False):
                 game_over = -1
+                game_over_fx.play()
 
             #Check for collision with poison
             if pygame.sprite.spritecollide(self, poison_group, False):
                 game_over = -1
-                
+                game_over_fx.play()
 
             #Check for collision with exit
             if pygame.sprite.spritecollide(self, exit_group, False):
                 game_over = 1
 
+            #Check for collision with platform
+            for platform in platform_group:
+                #x direction
+                if platform.rect.colliderect(self.rect.x + dx, self.rect.y, self.width, self.height):
+                    dx = 0
+                if platform.rect.colliderect(self.rect.x, self.rect.y + dy, self.width, self.height):
+                    #Below
+                    if abs((self.rect.top + dy ) - platform.rect.bottom )< col_thresh:
+                        self.vel_y = 0
+                        dy = platform.rect.bottom - self.rect.top
+                    #above
+                    elif abs((self.rect.bottom + dy) - platform.rect.top) < col_thresh:
+                        self.rect.bottom = platform.rect.top - 1
+                        self.in_air = False
+                        dy = 0
+                    #Move
+                    if platform.move_x != 0:
+                        self.rect.x += platform.move_direction
 
 
             #Update player coordinates
@@ -178,9 +221,12 @@ class CPlayer:
         elif game_over == -1:
             self.image = pygame.transform.scale(self.dead_image, (35, 50))
             draw_text("GAME OVER", font, (0,0,0),screen_width //2 - 200, (screen_height //2) - 70 )
+            if self.rect.y > 200:
+                self.rect.y = -5
+
         #Draw player onto screen
         screen.blit(self.image, self.rect)
-        pygame.draw.rect(screen, (183,223,253), self.rect,2)
+        # pygame.draw.rect(screen, (183,223,253), self.rect,2)
         return game_over
     
     def restart(self, x, y):
@@ -228,6 +274,12 @@ class CWorld:
                 if tile ==3:
                     enemy = CEnemy(col_count * tile_size + 5, row_count * tile_size + 10)
                     enemy_group.add(enemy)
+                if tile == 4:
+                    platform = CPlatform(col_count * tile_size, row_count * tile_size, 1, 0 )
+                    platform_group.add(platform)
+                if tile == 5:
+                    platform = CPlatform(col_count * tile_size, row_count * tile_size, 0, 1 )
+                    platform_group.add(platform)
                 if tile ==6:
                     poison = CPoison(col_count * tile_size, row_count * tile_size + 13)
                     poison_group.add(poison)
@@ -264,6 +316,29 @@ class CEnemy(pygame.sprite.Sprite):
             self.move_direction *= -1
             self.move_counter *= -1
 
+class CPlatform(pygame.sprite.Sprite):
+    def __init__(self, x, y, move_x, move_y):
+        pygame.sprite.Sprite.__init__(self)
+        image = pygame.image.load('img/platform.png')
+        self.image = pygame.transform.scale(image,(tile_size, tile_size/1.5))
+        self.rect = self.image.get_rect()
+        self.rect.x = x
+        self.rect.y = y
+        self.move_counter = 0
+        self.move_direction = 1
+        self.move_x = move_x
+        self.move_y = move_y
+
+    def update(self):
+        self.rect.x += self.move_direction * self.move_x
+        self.rect.y += self.move_direction * self.move_y
+        self.move_counter += 1
+        if abs(self.move_counter) > 42:
+            self.move_direction *= -1
+            self.move_counter *= -1
+
+
+
 class CPoison(pygame.sprite.Sprite):
     def __init__(self, x, y):
         pygame.sprite.Sprite.__init__(self)
@@ -299,6 +374,7 @@ class CExit(pygame.sprite.Sprite):
 player = CPlayer(70, screen_height - 91)
 
 enemy_group = pygame.sprite.Group()
+platform_group = pygame.sprite.Group()
 poison_group = pygame.sprite.Group()
 coin_group = pygame.sprite.Group()
 exit_group = pygame.sprite.Group()
@@ -339,12 +415,15 @@ while run:
 
         if game_over == 0:
             enemy_group.update()
+            platform_group.update()
             #Update score
             if pygame.sprite.spritecollide(player, coin_group, True):
+                coin_fx.play()
                 score +=1
             draw_text(str(score), font_score, (255,255,255), tile_size, 10)
 
         enemy_group.draw(screen)
+        platform_group.draw(screen)
         poison_group.draw(screen)
         coin_group.draw(screen)
         exit_group.draw(screen)
