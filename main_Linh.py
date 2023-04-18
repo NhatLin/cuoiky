@@ -1,8 +1,11 @@
 import pygame
 from pygame.locals import *
+from pygame import mixer
 import pickle
 from os import path
 
+pygame.mixer.pre_init(44100, -16, 1, 512)
+mixer.init()
 pygame.init()
 
 clock = pygame.time.Clock()
@@ -13,12 +16,24 @@ fps = 60
 screen = pygame.display.set_mode((screen_width, screen_height))
 pygame.display.set_caption("Our game")
 
+
+#font
+font = pygame.font.Font('Pixeled.ttf', 50)
+font_score = pygame.font.SysFont('Pixeled.ttf', 30)
+
 #Define game variable
 tile_size = 35
 game_over = 0
 main_menu = True
 level = 1
 max_levels = 3
+score = 0
+
+#Draw text function
+def draw_text(text, font, text_col, x, y):
+    img = font.render(text, True, text_col)
+    screen.blit(img, (x, y))
+
 
 #Load img
 bg_img = pygame.image.load('img/sky.png')
@@ -34,8 +49,8 @@ def reset_level(level):
     poison_group.empty()
     exit_group.empty()
 
-    if path.exists(f'level{level}.pickle'):
-        pickle_in = open(f'level{level}.pickle ', 'rb')
+    if path.exists(f'level{level}_data'):
+        pickle_in = open(f'level{level}_data ', 'rb')
         world_data = pickle.load(pickle_in)
     world = CWorld(world_data)
 
@@ -155,13 +170,14 @@ class CPlayer:
                 game_over = 1
 
 
+
             #Update player coordinates
             self.rect.x += dx
             self.rect.y += dy
 
         elif game_over == -1:
             self.image = pygame.transform.scale(self.dead_image, (35, 50))
-        
+            draw_text("GAME OVER", font, (0,0,0),screen_width //2 - 200, (screen_height //2) - 70 )
         #Draw player onto screen
         screen.blit(self.image, self.rect)
         pygame.draw.rect(screen, (183,223,253), self.rect,2)
@@ -209,15 +225,19 @@ class CWorld:
                     img_react.y = row_count * tile_size
                     tile = (img, img_react)
                     self.tile_list.append(tile)
-                if tile ==2:
+                if tile ==3:
                     enemy = CEnemy(col_count * tile_size + 5, row_count * tile_size + 10)
                     enemy_group.add(enemy)
-                if tile ==3:
+                if tile ==6:
                     poison = CPoison(col_count * tile_size, row_count * tile_size + 13)
                     poison_group.add(poison)
-                if tile ==4:
+                if tile ==7:
+                    coin = CCoin(col_count * tile_size, row_count * tile_size + 13)
+                    coin_group.add(coin)
+                if tile ==8:
                     exit = CExit(col_count * tile_size, row_count * tile_size + 15)
                     exit_group.add(exit)
+                
                 col_count +=1
             row_count +=1
 
@@ -253,6 +273,16 @@ class CPoison(pygame.sprite.Sprite):
         self.rect.x = x
         self.rect.y = y
 
+
+class CCoin(pygame.sprite.Sprite):
+    def __init__(self, x, y):
+        pygame.sprite.Sprite.__init__(self)
+        image = pygame.image.load('img/coin.png')
+        self.image = pygame.transform.scale(image,(tile_size/1.5, tile_size/1.5))
+        self.rect = self.image.get_rect()
+        self.rect.center = (x,y)
+
+
 class CExit(pygame.sprite.Sprite):
     def __init__(self, x, y):
         pygame.sprite.Sprite.__init__(self)
@@ -270,12 +300,16 @@ player = CPlayer(70, screen_height - 91)
 
 enemy_group = pygame.sprite.Group()
 poison_group = pygame.sprite.Group()
+coin_group = pygame.sprite.Group()
 exit_group = pygame.sprite.Group()
+
+score_coin = CCoin(tile_size// 2, 25)
+coin_group.add(score_coin)
 
 #Load in level data and create world
 
-if path.exists(f'level{level}.pickle'):
-	pickle_in = open(f'level{level}.pickle', 'rb')
+if path.exists(f'level{level}_data'):
+	pickle_in = open(f'level{level}_data', 'rb')
 	world_data = pickle.load(pickle_in)
 world = CWorld(world_data)
 
@@ -283,9 +317,6 @@ world = CWorld(world_data)
 restart_button = CButton(screen_width //2 - 50, screen_height //2 + 100, restart_img)
 start_button = CButton(screen_width //2 - 260, screen_height //2 , start_img)
 exit_button = CButton(screen_width //2 + 90, screen_height//2, exit_img)
-
-
-
 
 
 run = True
@@ -308,9 +339,14 @@ while run:
 
         if game_over == 0:
             enemy_group.update()
+            #Update score
+            if pygame.sprite.spritecollide(player, coin_group, True):
+                score +=1
+            draw_text(str(score), font_score, (255,255,255), tile_size, 10)
 
         enemy_group.draw(screen)
         poison_group.draw(screen)
+        coin_group.draw(screen)
         exit_group.draw(screen)
 
         game_over = player.update(game_over)
@@ -321,6 +357,8 @@ while run:
             if restart_button.draw():
                 player.restart(70, screen_height - 91)
                 game_over = 0
+                scrore = 0
+
 
         #Player has completed level
         if game_over == 1:
@@ -330,11 +368,13 @@ while run:
                 world = reset_level(level)
                 game_over = 0
             else:
+                draw_text('YOU WIN', font, (0,0,0),screen_width //2 - 150, (screen_height //2) - 70)
                 if restart_button.draw():
                     level = 1
                     world_data = []
                     world = reset_level(level)
                     game_over = 0
+                    scrore = 0
     # draw_grid()
 
     for event in pygame.event.get():
