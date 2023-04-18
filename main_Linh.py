@@ -29,11 +29,7 @@ level = 1
 max_levels = 3
 score = 0
 
-
-
-
 #Load img
-
 bg_img = pygame.image.load('img/sky.png')
 sun_img = pygame.image.load('img/sun.png')
 restart_img = pygame.image.load('img/restart.png')
@@ -42,13 +38,13 @@ exit_img = pygame.image.load('img/exit.png')
 
 
 #Load sounds
-pygame.mixer.music.load('img/music.wav')
+pygame.mixer.music.load('sound/music.wav')
 pygame.mixer.music.play(-1, 0.0, 1000)
-coin_fx = pygame.mixer.Sound('img/coin.wav')
+coin_fx = pygame.mixer.Sound('sound/coin.wav')
 coin_fx.set_volume(0.5)
-jump_fx = pygame.mixer.Sound('img/jump.wav')
+jump_fx = pygame.mixer.Sound('sound/jump.wav')
 jump_fx.set_volume(0.5)
-game_over_fx = pygame.mixer.Sound('img/game_over.wav')
+game_over_fx = pygame.mixer.Sound('sound/game_over.wav')
 game_over_fx.set_volume(0.5)
 
 #Draw text function
@@ -448,6 +444,8 @@ while run:
                 game_over = 0
             else:
                 draw_text('YOU WIN', font, (0,0,0),screen_width //2 - 150, (screen_height //2) - 70)
+                pygame.display.update()
+                pygame.time.delay(2000)
                 if restart_button.draw():
                     level = 1
                     world_data = []
