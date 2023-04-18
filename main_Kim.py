@@ -109,7 +109,7 @@ class CWorld:
 
         #Load img
         land_img = pygame.image.load('img/land.png')
-        grass_img = pygame.image.load('img/grass.png')
+
 
 
         row_count = 0

@@ -1,6 +1,7 @@
 import pygame
 from pygame.locals import *
 import pickle
+from os import path
 
 pygame.init()
 
@@ -33,8 +34,12 @@ def reset_level(level):
     poison_group.empty()
     exit_group.empty()
 
+    if path.exists(f'level{level}.pickle'):
+        pickle_in = open(f'level{level}.pickle ', 'rb')
+        world_data = pickle.load(pickle_in)
+    world = CWorld(world_data)
 
-
+    return world
 # def draw_grid():
 #     for line in range(20):
 #         pygame.draw.line(screen, (255,255,255), (0, line * tile_size ), (screen_width, line * tile_size) )
@@ -261,17 +266,18 @@ class CExit(pygame.sprite.Sprite):
 
 
 
-
 player = CPlayer(70, screen_height - 91)
+
 enemy_group = pygame.sprite.Group()
 poison_group = pygame.sprite.Group()
 exit_group = pygame.sprite.Group()
 
 #Load in level data and create world
-pickle_in = open(f'level{level}.pickle', 'rb')
-world_data = pickle.load(pickle_in)
-world = CWorld(world_data)
 
+if path.exists(f'level{level}.pickle'):
+	pickle_in = open(f'level{level}.pickle', 'rb')
+	world_data = pickle.load(pickle_in)
+world = CWorld(world_data)
 
 #Create button
 restart_button = CButton(screen_width //2 - 50, screen_height //2 + 100, restart_img)
@@ -324,7 +330,11 @@ while run:
                 world = reset_level(level)
                 game_over = 0
             else:
-                pass
+                if restart_button.draw():
+                    level = 1
+                    world_data = []
+                    world = reset_level(level)
+                    game_over = 0
     # draw_grid()
 
     for event in pygame.event.get():
