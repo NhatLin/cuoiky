@@ -25,7 +25,7 @@ font_score = pygame.font.SysFont('Pixeled.ttf', 30)
 tile_size = 35
 game_over = 0
 main_menu = True
-level = 1
+level = 3
 max_levels = 5
 score = 0
 
@@ -120,11 +120,11 @@ class CPlayer:
         if game_over ==0: 
             #Get ketpresses
             key = pygame.key.get_pressed()
-            if key[pygame.K_UP] and self.jumped == False and self.in_air == False:
+            if key[pygame.K_SPACE] and self.jumped == False and self.in_air == False:
                 jump_fx.play()
                 self.vel_y -= 13
                 self.jumped = True
-            if key[pygame.K_UP] == False:
+            if key[pygame.K_SPACE] == False:
                 self.jumped = False
             if key[pygame.K_LEFT]:
                 dx -= 3.5
