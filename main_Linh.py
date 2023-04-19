@@ -26,7 +26,7 @@ tile_size = 35
 game_over = 0
 main_menu = True
 level = 1
-max_levels = 3
+max_levels = 5
 score = 0
 
 #Load img
@@ -72,8 +72,8 @@ def reset_level(level):
     world = CWorld(world_data)
     score_coin = CCoin(tile_size // 2, tile_size // 2)
     coin_group.add(score_coin)
-
     return world
+
 # def draw_grid():
 #     for line in range(20):
 #         pygame.draw.line(screen, (255,255,255), (0, line * tile_size ), (screen_width, line * tile_size) )
@@ -97,7 +97,7 @@ class CButton:
             if pygame.mouse.get_pressed()[0]==1 and self.clicked == False:
                 action = True
                 self.clicked = True
-        if pygame.mouse.get_pressed()[0]:
+        if pygame.mouse.get_pressed()[0] == 0:
             self.clicked = False
 
 
@@ -122,7 +122,7 @@ class CPlayer:
             key = pygame.key.get_pressed()
             if key[pygame.K_UP] and self.jumped == False and self.in_air == False:
                 jump_fx.play()
-                self.vel_y -= 15
+                self.vel_y -= 13
                 self.jumped = True
             if key[pygame.K_UP] == False:
                 self.jumped = False
@@ -191,7 +191,6 @@ class CPlayer:
 
             #Check for collision with exit
             if pygame.sprite.spritecollide(self, exit_group, False):
-                level
                 game_over = 1
 
             #Check for collision with platform
@@ -221,12 +220,12 @@ class CPlayer:
         elif game_over == -1:
             self.image = self.dead_image
             draw_text("GAME OVER", font, (0,0,0),screen_width //2 - 200, (screen_height //2) - 70 )
-            if self.rect.y > 200:
-                self.rect.y = -5
+            # if self.rect.y > 200:
+            #     self.rect.y -= 5
 
         #Draw player onto screen
         screen.blit(self.image, self.rect)
-        pygame.draw.rect(screen, (183,223,253), self.rect,1)
+        # pygame.draw.rect(screen, (183,223,253), self.rect,1)
         return game_over
     
     def restart(self, x, y):
@@ -287,7 +286,7 @@ class CWorld:
                     coin = CCoin(col_count * tile_size, row_count * tile_size + 13)
                     coin_group.add(coin)
                 if tile ==8:
-                    exit = CExit(col_count * tile_size, row_count * tile_size + 15)
+                    exit = CExit(col_count * tile_size, row_count * tile_size - 15)
                     exit_group.add(exit)
                 
                 col_count +=1
@@ -296,7 +295,7 @@ class CWorld:
     def draw(self):
         for tile in self.tile_list:
             screen.blit(tile[0], tile[1])
-            pygame.draw.rect(screen, (255,255,255), tile[1], 2)
+            # pygame.draw.rect(screen, (255,255,255), tile[1], 2)
 
 class CEnemy(pygame.sprite.Sprite):
     def __init__(self, x, y):
@@ -431,8 +430,10 @@ while run:
 
         #If player has died
         if game_over == -1:
+
             if restart_button.draw():
-                player.restart(70, screen_height - 91)
+                world_data = []
+                world = reset_level(level)
                 game_over = 0
                 scrore = 0
 
@@ -447,8 +448,6 @@ while run:
             else:
                 completed_levels_fx.play()
                 draw_text('YOU WIN', font, (0,0,0),screen_width //2 - 150, (screen_height //2) - 70)
-               
-                completed_levels_fx.play()
                 if restart_button.draw():
                     level = 1
                     world_data = []
