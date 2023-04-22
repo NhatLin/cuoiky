@@ -25,7 +25,7 @@ font_score = pygame.font.SysFont('Pixeled.ttf', 30)
 tile_size = 35
 game_over = 0
 main_menu = True
-level = 3
+level = 4
 max_levels = 5
 score = 0
 
@@ -120,11 +120,11 @@ class CPlayer:
         if game_over ==0: 
             #Get ketpresses
             key = pygame.key.get_pressed()
-            if key[pygame.K_SPACE] and self.jumped == False and self.in_air == False:
+            if key[pygame.K_UP] and self.jumped == False and self.in_air == False:
                 jump_fx.play()
-                self.vel_y -= 13
+                self.vel_y -= 15
                 self.jumped = True
-            if key[pygame.K_SPACE] == False:
+            if key[pygame.K_UP] == False:
                 self.jumped = False
             if key[pygame.K_LEFT]:
                 dx -= 3.5
@@ -156,8 +156,8 @@ class CPlayer:
 
             #Add gravity
             self.vel_y +=1
-            if self.vel_y > 5:
-                self.vel_y = 5
+            if self.vel_y > 10:
+                self.vel_y = 4
             dy += self.vel_y
 
             #Check for collision
@@ -283,7 +283,7 @@ class CWorld:
                     poison = CPoison(col_count * tile_size, row_count * tile_size + 13)
                     poison_group.add(poison)
                 if tile ==7:
-                    coin = CCoin(col_count * tile_size, row_count * tile_size + 13)
+                    coin = CCoin(col_count * tile_size + 15, row_count * tile_size + 13)
                     coin_group.add(coin)
                 if tile ==8:
                     exit = CExit(col_count * tile_size, row_count * tile_size - 15)

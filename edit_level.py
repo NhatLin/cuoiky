@@ -16,7 +16,7 @@ screen_width = tile_size * cols
 screen_height = (tile_size * cols) + margin
 
 screen = pygame.display.set_mode((screen_width, screen_height))
-pygame.display.set_caption('Level Editor')
+pygame.display.set_caption('Create level')
 
 
 #load images
@@ -24,8 +24,8 @@ sun_img = pygame.image.load('img/sun.png')
 sun_img = pygame.transform.scale(sun_img, (tile_size, tile_size))
 bg_img = pygame.image.load('img/sky.png')
 bg_img = pygame.transform.scale(bg_img, (screen_width, screen_height - margin))
-dirt_img = pygame.image.load('img/land.png')
-blob_img = pygame.image.load('img/ghost.png')
+land_img = pygame.image.load('img/land.png')
+enemy_img = pygame.image.load('img/ghost.png')
 platform_x_img = pygame.image.load('img/platform.png')
 platform_y_img = pygame.image.load('img/platform.png')
 poison_img = pygame.image.load('img/poison.png')
@@ -77,12 +77,12 @@ def draw_world():
 			if world_data[row][col] > 0:
 				if world_data[row][col] == 1:
 					#dirt blocks
-					img = pygame.transform.scale(dirt_img, (tile_size, tile_size))
+					img = pygame.transform.scale(land_img, (tile_size, tile_size))
 					screen.blit(img, (col * tile_size, row * tile_size))
 
 				if world_data[row][col] == 3:
 					#enemy blocks
-					img = pygame.transform.scale(blob_img, (tile_size, int(tile_size * 0.75)))
+					img = pygame.transform.scale(enemy_img, (tile_size, int(tile_size * 0.75)))
 					screen.blit(img, (col * tile_size, row * tile_size + (tile_size * 0.25)))
 				if world_data[row][col] == 4:
 					#horizontally moving platform
